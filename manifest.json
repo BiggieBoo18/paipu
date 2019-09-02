@@ -1,0 +1,17 @@
+{
+    "description": "Simple request and response interceptor.",
+    "homepageurl": "",
+    "manifest_version": 2,
+    "name": "paipu",
+    "version": "1.0",
+
+    "permissions": [
+	"webRequest",
+	"webRequestBlocking",
+	"<all_urls>"
+    ],
+
+    "background": {
+	"scripts": ["background.js"]
+    }
+}
