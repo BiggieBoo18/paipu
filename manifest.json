@@ -1,17 +1,29 @@
 {
     "description": "Simple request and response interceptor.",
-    "homepageurl": "",
+    // "homepageurl": "https://github.com/BiggieBoo18/paipu",
     "manifest_version": 2,
-    "name": "paipu",
+    "name": "Paipu",
     "version": "1.0",
-
+    "icons": {
+	"48": "icons/paipu-48.svg"
+    },
     "permissions": [
+	"activeTab",
 	"webRequest",
 	"webRequestBlocking",
 	"<all_urls>"
     ],
-
+    "browser_action": {
+	"default_icon": "icons/paipu-48.svg",
+	"default_title": "Paipu"
+    },
     "background": {
-	"scripts": ["background.js"]
-    }
+	"scripts": ["background/background.js"]
+    },
+    "content_scripts": [
+    	{
+	    "matches": ["<all_urls>"],
+    	    "js": ["popup/paipu.js"]
+    	}
+    ]
 }
