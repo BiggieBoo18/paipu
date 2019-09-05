@@ -19,11 +19,11 @@
     },
     "background": {
 	"scripts": ["background/background.js"]
-    },
-    "content_scripts": [
-    	{
-	    "matches": ["<all_urls>"],
-    	    "js": ["popup/paipu.js"]
-    	}
-    ]
+    }
+    // "content_scripts": [
+    // 	{
+    // 	    "matches": ["<all_urls>"],
+    // 	    "js": ["popup/paipu.js"]
+    // 	}
+    // ]
 }

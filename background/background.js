@@ -1,42 +1,97 @@
-var targetPage      = '<all_urls>';
-var connectedTabIds = {};
+var targetPage   = '<all_urls>';
+var tableIds     = []; 
 
-function awaitOnMessage(p) {
-    return new Promise((resolve, reject) => {
-	p.onMessage.addListener(resolve);
-    });
+/**
+ * Create table
+ */
+function createInputText(value) {
+    inputText       = document.createElement('input');
+    inputText.type  = 'text';
+    inputText.name  = 'name';
+    inputText.value = value;
+    return inputText;
 }
-
-async function asyncOnMessage(p) {
-    const m = await awaitOnMessage(p);
-    return m;
+function createHeaderTable(headers, headerTable, idx) {
+    let rows  = [];
+    let table = document.createElement('table');
+    table.id = `table-${idx}`;
+    // create table header
+    rows.push(table.insertRow(-1))
+    let cell = rows[0].insertCell(-1);
+    cell.appendChild(document.createTextNode("Name"));
+    cell = rows[0].insertCell(-1);
+    cell.appendChild(document.createTextNode("Value"));
+    // create table cells
+    for (let i=1;i<headers.length+1;i++) {
+    	rows.push(table.insertRow(-1));
+    	let name  = rows[i].insertCell(-1);
+    	name.appendChild(createInputText(headers[i-1]['name']));
+	let val  = rows[i].insertCell(-1);
+	if (headers[i-1]['value']) {
+	    val.appendChild(createInputText(headers[i-1]['value']));
+	} else {
+	    val.appendChild(createInputText(headers[i-1]['binaryValue']));
+	}
+    }
+    headerTable.appendChild(table);
+    // create send button
+    let button = document.createElement('button');
+    button.textContent = 'send';
+    button.id          = `button-${idx}`;
+    headerTable.appendChild(button);
+}
+function getTable(idx) {
+    let returnTable = [];
+    let table       = document.getElementById(`table-${idx}`);
+    for (let i=1;i<table.rows.length;i++) {
+	let tmp = {};
+	tmp['name']  = table.rows[i].cells[0].children[0].value;
+	tmp['value'] = table.rows[i].cells[1].children[0].value;
+	if (tmp['name']) {
+	    returnTable.push(tmp);
+	}
+    }
+    return returnTable;
+}
+function deleteTable(idx) {
+    console.dir(document);
+    let table  = document.getElementById(`table-${idx}`);
+    while (table.firstChild) table.removeChild(table.firstChild);
+    table.parentNode.removeChild(table);
+    let button = document.getElementById(`button-${idx}`);
+    while (button.firstChild) button.removeChild(button.firstChild);
+    button.parentNode.removeChild(button);
 }
 
 /**
  * Modify request headers
  */
-async function modifyHeaders(e) {
-    let edited_headers = undefined;
-    if (connectedTabIds[e.tabId]!==undefined) {
-	console.log(`start connection ${e.tabId}`);
-	let p = connectedTabIds[e.tabId];
-	p.postMessage({headers: e.requestHeaders});
-	edited_headers = await awaitOnMessage(p);
-	// let promise = asyncOnMessage(p);
-	// promise.then((m) => {
-	//     console.log("Recieve from edited headers");
-	//     console.dir(m.edited_headers);
-	//     console.log(`end connection ${e.tabId}`);
-	//     edited_headers = m.edited_headers
-	// });
-    }
-    if (edited_headers===undefined) {
-	console.log("not wait");
-	console.dir(edited_headers);
+function modifyHeaders(e) {
+    let edited_headers = e.requestHeaders;
+    let headerTable    = document.getElementById('header-table');
+    if (headerTable) {
+	if (tableIds.length) {
+	    tableIds.push(tableIds[tableIds.length-1]+1);
+	} else {
+	    tableIds.push(0);
+	}
+	currentIdx = tableIds[tableIds.length-1];
+	createHeaderTable(e.requestHeaders, headerTable, currentIdx);
+	let button = document.getElementById(`button-${currentIdx}`);
+	let asyncModifyHeader = new Promise((resolve, reject) => {
+	    button.onclick = () => {
+		currentIdx = button.id.slice('button-'.length);
+		edited_headers = getTable(currentIdx);
+		console.log('edited headers:');
+		console.dir(edited_headers);
+		deleteTable(currentIdx);
+		resolve({requestHeaders: edited_headers});
+	    };
+	});
+	return asyncModifyHeader;
     }
     return {requestHeaders: e.requestHeaders};
 }
-
 browser.webRequest.onBeforeSendHeaders.addListener(
     modifyHeaders,
     {urls: [targetPage]},
@@ -54,25 +109,16 @@ function onError(error) {
     console.error(`Error: ${error}`);
 }
 browser.browserAction.onClicked.addListener((tab) => {
-    if (connectedTabIds[tab.id]===undefined) {
-	let paipuURL = browser.extension.getURL(`popup/paipu.html`);
+    if (!window.hasRun&&location.pathname.indexOf('paipu.html')===-1) {
+	let paipuURL = browser.extension.getURL('paipu.html');
 	let creating = browser.windows.create({
 	    url: paipuURL,
-	    type: 'popup',
+	    type: 'detached_panel',
 	    height: 900,
 	    width: 800
 	});
 	creating.then(onCreated, onError);
-	browser.runtime.onConnect.addListener((p) => {
-	    connectedTabIds[tab.id] = p;
-	    console.log('background start greeting');
-	    p.postMessage({greeting:'Hi there content script'});
-	    p.onMessage.addListener((m) => {
-		console.log('From content script:'+m.greeting);
-	    });
-	    console.log('background end greeting');
-	    console.dir(connectedTabIds);
-	});
+	window.hasRun = true;
     } else {
 	console.log('Already created a paipu window');
     }
