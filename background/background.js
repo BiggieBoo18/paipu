@@ -200,9 +200,14 @@ browser.browserAction.onClicked.addListener(() => {
  * All send
  */
 function allSend() {
-    for (let i=0;i<tableIds.length;i++) {
-	sendButton = document.getElementById(`button-${tableIds[i]}`);
-	sendButton.click();
+    let cnt = 0;
+    let len = tableIds.length;
+    for (let i=0;i<len;i++) {
+	sendButton = document.getElementById(`button-${tableIds[i-cnt]}`);
+	if (sendButton) {
+	    sendButton.click();
+	    cnt++;
+	}
     }
 }
 allSendButton = document.getElementById('all-send');
