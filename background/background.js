@@ -1,4 +1,14 @@
+// /**
+//  * Set target page
+//  */
+// function getTargetUrl() {
+//     let storageItem = browser.storage.sync.get('targetUrl');
+//     return storageItem;
+// }
 var targetPage = '<all_urls>';
+// storageItem.then((res) => {
+//     targetPage = res.targetUrl || '<all_urls>';
+// });
 var tableIds      = []; 
 
 /**
@@ -24,6 +34,44 @@ function createUrlText(url, idx) {
     text.textContent = url;
     return text;
 }
+function addRow(table, headers, rows, idx, ex=false) {
+    rows.push(table.insertRow(-1));
+    if (!ex) {
+	rows[idx].id = `row-${idx}`;
+    } else {
+	rows[idx].id = `ex-row-${idx}`;
+    }
+    let name  = rows[idx].insertCell(-1);
+    if (!ex) {
+	name.appendChild(createInputText(headers[idx-1]['name'], `name${idx-1}`));
+    } else {
+	name.appendChild(createInputText('', `name${idx-1}`));
+    }
+    let val  = rows[idx].insertCell(-1);
+    if (!ex) {
+	if (headers[idx-1]['value']) {
+	    val.appendChild(createInputText(headers[idx-1]['value'], `value${idx-1}`));
+	} else {
+	    val.appendChild(createInputText(headers[idx-1]['binaryValue'], `value${idx-1}`));
+	}
+    } else {
+	val.appendChild(createInputText('', `value${idx-1}`));
+    }
+    let checkbox  = rows[idx].insertCell(-1);
+    checkbox.appendChild(createCheckbox(`checkbox${idx-1}`));
+    return rows;
+}
+function delRow(table, ex=false) {
+    if (ex) {
+	tail = table.rows[table.rows.length-1];
+	if (tail.id.startsWith('ex')) {
+	    table.deleteRow(-1);
+	}
+    } else {
+	table.deleteRow(-1);
+    }
+}
+
 function createHeaderTable(headers, headerTable, idx) {
     let rows  = [];
     let table = document.createElement('table');
@@ -38,17 +86,7 @@ function createHeaderTable(headers, headerTable, idx) {
     cell.appendChild(document.createTextNode("Not Send"));
     // create table cells
     for (let i=1;i<headers.length+1;i++) {
-    	rows.push(table.insertRow(-1));
-    	let name  = rows[i].insertCell(-1);
-    	name.appendChild(createInputText(headers[i-1]['name'], `name${i-1}`));
-	let val  = rows[i].insertCell(-1);
-	if (headers[i-1]['value']) {
-	    val.appendChild(createInputText(headers[i-1]['value'], `value${i-1}`));
-	} else {
-	    val.appendChild(createInputText(headers[i-1]['binaryValue'], `value${i-1}`));
-	}
-	let checkbox  = rows[i].insertCell(-1);
-	checkbox.appendChild(createCheckbox(`checkbox${i-1}`));
+	addRow(table, headers, rows, i);
     }
     headerTable.appendChild(table);
     // create send button
@@ -56,6 +94,22 @@ function createHeaderTable(headers, headerTable, idx) {
     button.textContent = 'send';
     button.id          = `button-${idx}`;
     headerTable.appendChild(button);
+    // create add row button
+    button = document.createElement('button');
+    button.textContent = '+';
+    button.id          = `add-button-${idx}`;
+    headerTable.appendChild(button);
+    button.addEventListener('click', () => {
+	addRow(table, headers, rows, rows.length, ex=true);
+    });
+    // create sub row button
+    button = document.createElement('button');
+    button.textContent = '-';
+    button.id          = `sub-button-${idx}`;
+    headerTable.appendChild(button);
+    button.addEventListener('click', () => {
+	delRow(table, rows.length, ex=true);
+    });
 }
 function getTable(idx) {
     let returnTable = [];
@@ -78,6 +132,12 @@ function deleteTable(idx) {
     while (table.firstChild) table.removeChild(table.firstChild);
     table.parentNode.removeChild(table);
     let button  = document.getElementById(`button-${idx}`);
+    while (button.firstChild) button.removeChild(button.firstChild);
+    button.parentNode.removeChild(button);
+    button  = document.getElementById(`add-button-${idx}`);
+    while (button.firstChild) button.removeChild(button.firstChild);
+    button.parentNode.removeChild(button);
+    button  = document.getElementById(`sub-button-${idx}`);
     while (button.firstChild) button.removeChild(button.firstChild);
     button.parentNode.removeChild(button);
     tableIds = tableIds.filter((item) => {
@@ -184,17 +244,6 @@ browser.browserAction.onClicked.addListener(() => {
 // 	browser.runtime.openOptionsPage().then(onOpened, onError);
 //     });
 // }
-
-// /**
-//  * Set target page
-//  */
-// function getTargetUrl() {
-//     let storageItem = browser.storage.sync.get('targetUrl');
-//     return storageItem;
-// }
-// storageItem.then((res) => {
-//     targetPage = res.targetUrl || '<all_urls>';
-// });
 
 /**
  * All send
