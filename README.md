@@ -1,2 +1,2 @@
 # paipu
-Simple request and response interceptor.
+Simple request header interceptor.
