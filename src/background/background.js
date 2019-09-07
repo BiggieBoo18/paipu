@@ -86,7 +86,7 @@ function createHeaderTable(headers, url, headerTable, idx) {
     table.id = `table-${idx}`;
     // create table caption
     let tableCaption = document.createElement('caption');
-    tableCaption.textContent = `RequestURL: ${url}`;
+    tableCaption.textContent = url;
     table.appendChild(tableCaption);
     // create table header
     let tableHeaders = ['Name', 'Value', 'Not Send'];
