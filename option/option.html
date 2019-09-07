@@ -7,9 +7,19 @@
   </head>
   <body>
     <form id="form-option">
-      <label>Target URL:</label>
-      <input type="text" id="url-text">
-      <button type="submit">Save</button>
+      <div>
+      <p>Target URL: </p>
+      <input type="text" placeholder="Scheme" title="Scheme" id="url-scheme" class="url-text">
+      <label>://</label>
+      <input type="text" placeholder="Host" title="Host" id="url-host" class="url-text">
+      <label>/</label>
+      <input type="text" placeholder="Path" title="Path" id="url-path" class="url-text">
+      <p>
+	<a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns">[Help] How to write</a>
+      </p>
+      </div>
+      <button type="submit" class="submit-button">Save</button>
+      <p class="saved-message" id="saved-message">Saved !<br>If the paipu window is open, open it again.</p>
     </form>
     <script src="option.js"></script>
   </body>

@@ -6,14 +6,15 @@
     <link rel="stylesheet" href="paipu.css"/>
   </head>
   <body>
-    <div class="listen-button">
-      <label>
-	<input type="checkbox" id="listen-button">
-	<span class="button">Paipu On</span>
-      </label>
-      <button id="option-button">Option</button>
+    <h1>Paipu</h1>
+    <p>Simple request header interceptor
+      <button id="option-button" class="option-button">Option</button>
+    </p>
+    <hr>
+    <div class="buttons">
+      <input type="checkbox" id="listen-button" class="listen-button"><label id="listen-text" class="listen-text" for="listen-button">Paipu OFF</label>
+      <button id="send-all" class="send-all">Send ALL</button>
     </div>
-    <div><button id="all-send">All send</button></div>
     <div id="header-table" class="header-table"></div>
     <script src="background/background.js"></script>
   </body>

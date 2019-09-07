@@ -1,14 +1,28 @@
-// /**
-//  * Set target page
-//  */
-// function getTargetUrl() {
-//     let storageItem = browser.storage.sync.get('targetUrl');
-//     return storageItem;
-// }
+/**
+ * Set target page
+ */
+function getTargetInfo() {
+    let targetInfo = browser.storage.sync.get();
+    return targetInfo;
+}
 var targetPage = '<all_urls>';
-// storageItem.then((res) => {
-//     targetPage = res.targetUrl || '<all_urls>';
-// });
+getTargetInfo().then((res) => {
+    scheme = '*';
+    if (res.targetScheme) {
+	scheme = res.targetScheme;
+    }
+    host   = '*';
+    if (res.targetHost) {
+	host = res.targetHost;
+    }
+    path   = '*';
+    if (res.targetPath) {
+	path = res.targetPath;
+    }
+    targetPage = `${scheme}`+`://${host}/`+`${path}` || '<all_urls>';
+    console.log(targetPage);
+});
+
 var tableIds      = []; 
 
 /**
@@ -27,12 +41,6 @@ function createCheckbox(rowIdx) {
     checkbox.id   = rowIdx;
     checkbox.type = 'checkbox';
     return checkbox;
-}
-function createUrlText(url, idx) {
-    text             = document.createElement('p');
-    text.id          = `url-${idx}`;
-    text.textContent = url;
-    return text;
 }
 function addRow(table, headers, rows, idx, ex=false) {
     rows.push(table.insertRow(-1));
@@ -72,18 +80,22 @@ function delRow(table, ex=false) {
     }
 }
 
-function createHeaderTable(headers, headerTable, idx) {
+function createHeaderTable(headers, url, headerTable, idx) {
     let rows  = [];
     let table = document.createElement('table');
     table.id = `table-${idx}`;
+    // create table caption
+    let tableCaption = document.createElement('caption');
+    tableCaption.textContent = `RequestURL: ${url}`;
+    table.appendChild(tableCaption);
     // create table header
+    let tableHeaders = ['Name', 'Value', 'Not Send'];
     rows.push(table.insertRow(-1))
-    cell = rows[0].insertCell(-1);
-    cell.appendChild(document.createTextNode("Name"));
-    cell = rows[0].insertCell(-1);
-    cell.appendChild(document.createTextNode("Value"));
-    cell = rows[0].insertCell(-1);
-    cell.appendChild(document.createTextNode("Not Send"));
+    for (let i=0;i<tableHeaders.length;i++) {
+	let headerCell = document.createElement('th');
+	headerCell.textContent = tableHeaders[i];
+	rows[0].appendChild(headerCell);
+    }
     // create table cells
     for (let i=1;i<headers.length+1;i++) {
 	addRow(table, headers, rows, i);
@@ -92,12 +104,14 @@ function createHeaderTable(headers, headerTable, idx) {
     // create send button
     let button = document.createElement('button');
     button.textContent = 'send';
-    button.id          = `button-${idx}`;
+    button.id          = `send-button-${idx}`;
+    button.className   = `send-button-${idx}`;
     headerTable.appendChild(button);
     // create add row button
     button = document.createElement('button');
     button.textContent = '+';
     button.id          = `add-button-${idx}`;
+    button.className   = `add-button-${idx}`;
     headerTable.appendChild(button);
     button.addEventListener('click', () => {
 	addRow(table, headers, rows, rows.length, ex=true);
@@ -106,6 +120,7 @@ function createHeaderTable(headers, headerTable, idx) {
     button = document.createElement('button');
     button.textContent = '-';
     button.id          = `sub-button-${idx}`;
+    button.className   = `sub-button-${idx}`;
     headerTable.appendChild(button);
     button.addEventListener('click', () => {
 	delRow(table, rows.length, ex=true);
@@ -126,12 +141,10 @@ function getTable(idx) {
     return returnTable;
 }
 function deleteTable(idx) {
-    let urlText = document.getElementById(`url-${idx}`);
-    urlText.parentNode.removeChild(urlText);
     let table   = document.getElementById(`table-${idx}`);
     while (table.firstChild) table.removeChild(table.firstChild);
     table.parentNode.removeChild(table);
-    let button  = document.getElementById(`button-${idx}`);
+    let button  = document.getElementById(`send-button-${idx}`);
     while (button.firstChild) button.removeChild(button.firstChild);
     button.parentNode.removeChild(button);
     button  = document.getElementById(`add-button-${idx}`);
@@ -160,15 +173,12 @@ function modifyHeaders(e) {
 	    tableIds.push(0);
 	}
 	currentIdx = tableIds[tableIds.length-1];
-	// create url text
-	urlText = createUrlText(e.url, currentIdx);
-	headerTable.appendChild(urlText);
 	// create header table
-	createHeaderTable(e.requestHeaders, headerTable, currentIdx);
-	let button = document.getElementById(`button-${currentIdx}`);
+	createHeaderTable(e.requestHeaders, e.url, headerTable, currentIdx);
+	let button = document.getElementById(`send-button-${currentIdx}`);
 	let asyncModifyHeader = new Promise((resolve, reject) => {
 	    button.onclick = () => {
-		currentIdx = button.id.slice('button-'.length);
+		currentIdx = button.id.slice('send-button-'.length);
 		edited_headers = getTable(currentIdx);
 		console.log('edited headers:');
 		console.dir(edited_headers);
@@ -183,14 +193,17 @@ function modifyHeaders(e) {
 let listenButton = document.getElementById('listen-button');
 if (listenButton) {
     listenButton.addEventListener('change', () => {
+	listenText = document.getElementById('listen-text');
 	if (listenButton.checked) {
 	    browser.webRequest.onBeforeSendHeaders.addListener(
 		modifyHeaders,
 		{urls: [targetPage]},
 		['blocking', 'requestHeaders']
 	    );
+	    listenText.textContent = 'Paipu ON';
 	} else {
 	    browser.webRequest.onBeforeSendHeaders.removeListener(modifyHeaders);
+	    listenText.textContent = 'Paipu OFF';
 	}
     });
 }
@@ -228,22 +241,22 @@ browser.browserAction.onClicked.addListener(() => {
     }
 });
 
-// /**
-//  * Open option page
-//  */
-// function onOpened() {
-//   console.log(`Options page opened`);
-// }
+/**
+ * Open option page
+ */
+function onOpened() {
+    console.log('Options page opened');
+}
 
-// function onError(error) {
-//   console.log(`Error: ${error}`);
-// }
-// optionButton = document.getElementById('option-button');
-// if (optionButton) {
-//     optionButton.addEventListener('click', () => {
-// 	browser.runtime.openOptionsPage().then(onOpened, onError);
-//     });
-// }
+function onError(error) {
+    console.log(`Error: ${error}`);
+}
+optionButton = document.getElementById('option-button');
+if (optionButton) {
+    optionButton.addEventListener('click', () => {
+	browser.runtime.openOptionsPage().then(onOpened, onError);
+    });
+}
 
 /**
  * All send
@@ -252,14 +265,14 @@ function allSend() {
     let cnt = 0;
     let len = tableIds.length;
     for (let i=0;i<len;i++) {
-	sendButton = document.getElementById(`button-${tableIds[i-cnt]}`);
+	sendButton = document.getElementById(`send-button-${tableIds[i-cnt]}`);
 	if (sendButton) {
 	    sendButton.click();
 	    cnt++;
 	}
     }
 }
-allSendButton = document.getElementById('all-send');
+allSendButton = document.getElementById('send-all');
 if (allSendButton) {
     allSendButton.addEventListener('click', allSend);
 }

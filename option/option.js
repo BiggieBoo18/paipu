@@ -1,14 +1,19 @@
 function saveOptions(e) {
     browser.storage.sync.set({
-	targetUrl: document.getElementById('url-text').value
+	targetScheme: document.getElementById('url-scheme').value,
+	targetHost: document.getElementById('url-host').value,
+	targetPath: document.getElementById('url-path').value
     });
+    document.getElementById('saved-message').style.visibility = "visible";
     e.preventDefault();
 }
 
 function restoreOptions() {
-    let storageItem = browser.storage.sync.get('targetUrl');
-    storageItem.then((res) => {
-	document.getElementById('url-text').value = res.targetUrl || '';
+    let targetInfo = browser.storage.sync.get();
+    targetInfo.then((res) => {
+	document.getElementById('url-scheme').value = res.targetScheme || '';
+	document.getElementById('url-host').value = res.targetHost || '';
+	document.getElementById('url-path').value = res.targetPath || '';
     });
 }
 

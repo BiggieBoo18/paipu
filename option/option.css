@@ -1,0 +1,39 @@
+form {
+    border: dotted 2px #c2c2d6;
+    padding: 10px;
+    
+}
+
+.saved-message {
+    visibility: hidden;
+    font-size: 1.0em;
+    font-weight: bold;
+    color: #006699;
+}
+
+.submit-button {
+    display: block;
+    font-size: 1.0em;
+    font-weight: bold;
+    padding: 5px 15px;
+    margin: 10px 10px 0px 0px;
+    color: #fff;
+    border-style: none;
+    box-shadow: 2px 2px 3px 1px #666;
+    -moz-box-shadow: 2px 2px 3px 1px #666;
+    -webkit-box-shadow: 2px 2px 3px 1px #666;
+    text-shadow: 1px 1px 2px #000;
+    background: -moz-liner-gradient(bottom, #e0e0eb, #52527a 50%, #e0e0eb);
+    background: -webkit-gradient(linear, left bottom, left top, from(#e0e0eb), color-stop(0.5, #52527a), to(#e0e0eb));
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+}
+
+.submit-button:hover {
+    opacity: 0.8;
+}
+
+.url-text {
+    width: 150px;
+}

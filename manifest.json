@@ -1,5 +1,5 @@
 {
-    "description": "Simple request and response interceptor.",
+    "description": "Simple request header interceptor.",
     "homepage_url": "https://github.com/BiggieBoo18/paipu",
     "manifest_version": 2,
     "name": "Paipu",
@@ -20,9 +20,15 @@
     },
     "background": {
 	"scripts": ["background/background.js"]
+    },
+    "applications": {
+	"gecko": {
+	    "id": "paipu@biggie.boo",
+	    "strict_min_version": "60.0"
+	}
+    },
+    "options_ui": {
+    	"page": "option/option.html",
+    	"browser_style": true
     }
-    // "options_ui": {
-    // 	"page": "option/option.html",
-    // 	"browser_style": true
-    // }
 }
