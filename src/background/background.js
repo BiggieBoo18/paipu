@@ -23,7 +23,8 @@ getTargetInfo().then((res) => {
     console.log(targetPage);
 });
 
-var tableIds      = []; 
+var tableIds = [];
+var windowId = -1;
 
 /**
  * Create table
@@ -162,6 +163,9 @@ function deleteTable(idx) {
  * Modify request headers
  */
 function modifyHeaders(e) {
+    if (windowId!==-1) {
+	browser.windows.update(windowId, {focused: true});
+    }
     console.log('original requestHeaders:');
     console.dir(e.requestHeaders);
     let edited_headers = e.requestHeaders;
@@ -214,10 +218,11 @@ if (listenButton) {
  */
 function onCreated(windowInfo) {
     console.log(`Created window: ${windowInfo.id}`);
-    browser.windows.update(windowInfo.id, {height:900, width:801}); // for redraw
-    browser.windows.onRemoved.addListener((windowId) => {
-	console.log('Closed window: ' + windowId);
-	if (windowId===windowInfo.id) {
+    windowId = windowInfo.id;
+    browser.windows.update(windowId, {height:900, width:801}); // for redraw
+    browser.windows.onRemoved.addListener((wid) => {
+	console.log('Closed window: ' + wid);
+	if (wid===windowInfo.id) {
 	    window.hasRun = false;
 	}
     });
@@ -238,6 +243,9 @@ browser.browserAction.onClicked.addListener(() => {
 	window.hasRun = true;
     } else {
 	console.log('Already created a paipu window');
+	if (windowId!==-1) {
+	    browser.windows.update(windowId, {focused: true});
+	}
     }
 });
 
