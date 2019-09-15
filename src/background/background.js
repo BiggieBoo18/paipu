@@ -43,20 +43,26 @@ function createCheckbox(rowIdx) {
     checkbox.type = 'checkbox';
     return checkbox;
 }
+function parseCookie(value) {
+    let cookies = [];
+    cookies = value.split(';');
+    return cookies;
+}
 function addRow(table, headers, rows, idx, ex=false) {
+    let rowIdx  = rows.length
     rows.push(table.insertRow(-1));
     if (!ex) {
-	rows[idx].id = `row-${idx}`;
+	rows[rowIdx].id = `row-${idx}`;
     } else {
-	rows[idx].id = `ex-row-${idx}`;
+	rows[rowIdx].id = `ex-row-${idx}`;
     }
-    let name  = rows[idx].insertCell(-1);
+    let name  = rows[rowIdx].insertCell(-1);
     if (!ex) {
 	name.appendChild(createInputText(headers[idx-1]['name'], `name${idx-1}`));
     } else {
 	name.appendChild(createInputText('', `name${idx-1}`));
     }
-    let val  = rows[idx].insertCell(-1);
+    let val  = rows[rowIdx].insertCell(-1);
     if (!ex) {
 	if (headers[idx-1]['value']) {
 	    val.appendChild(createInputText(headers[idx-1]['value'], `value${idx-1}`));
@@ -66,9 +72,31 @@ function addRow(table, headers, rows, idx, ex=false) {
     } else {
 	val.appendChild(createInputText('', `value${idx-1}`));
     }
-    let checkbox  = rows[idx].insertCell(-1);
+    let checkbox  = rows[rowIdx].insertCell(-1);
     checkbox.appendChild(createCheckbox(`checkbox${idx-1}`));
-    return rows;
+}
+function addRowsForCookie(table, headers, rows, idx) {
+    let rowIdx  = rows.length
+    let cookies = parseCookie(headers[idx-1]['value']);
+    for (let i=0;i<cookies.length;i++) {
+	rows.push(table.insertRow(-1));
+	rows[rowIdx+i].id = `row-${idx}-${i}`
+	let name  = rows[rowIdx+i].insertCell(-1);
+	if (i==0) {
+	    name.appendChild(createInputText('Cookie', `name${idx-1}`));
+	} else {
+	    name.appendChild(createInputText('', `name${idx-1}`));
+	}
+	let val  = rows[rowIdx+i].insertCell(-1);
+	if (headers[idx-1]['value']) {
+	    val.appendChild(createInputText(cookies[i], `value${idx-1}`));
+	} else {
+	    val.appendChild(createInputText(headers[idx-1]['binaryValue'], `value${idx-1}`));
+	}
+	let checkbox  = rows[rowIdx+i].insertCell(-1);
+	checkbox.appendChild(createCheckbox(`checkbox${idx-1}`));
+    }
+    return cookies.length
 }
 function delRow(table, ex=false) {
     if (ex) {
@@ -98,8 +126,14 @@ function createHeaderTable(headers, url, headerTable, idx) {
 	rows[0].appendChild(headerCell);
     }
     // create table cells
+    let cntCookies = 0;
     for (let i=1;i<headers.length+1;i++) {
-	addRow(table, headers, rows, i);
+	// addRow(table, headers, rows, i); // old
+	if (headers[i-1]['name']==="Cookie") {
+	    cntCookies += addRowsForCookie(table, headers, rows, i);
+	} else {
+	    addRow(table, headers, rows, i);
+	}
     }
     headerTable.appendChild(table);
     // create send button
@@ -127,15 +161,37 @@ function createHeaderTable(headers, url, headerTable, idx) {
 	delRow(table, rows.length, ex=true);
     });
 }
+function mergeCookies(rows, idx) {
+    let cookiesValue = "";
+    let row = undefined;
+    for (let i=idx;i<rows.length;i++) {
+	row = rows[i];
+	if (row.id.startsWith(`row-${idx}`)&&!row.cells[2].children[0].checked&&row.cells[1].children[0].value) {
+	    cookiesValue += `${row.cells[1].children[0].value};`;
+	}
+    }
+    cookiesValue = cookiesValue.slice(0, -1);
+    return cookiesValue;
+}
 function getTable(idx) {
     let returnTable = [];
     let table       = document.getElementById(`table-${idx}`);
     for (let i=1;i<table.rows.length;i++) {
 	let tmp = {};
 	tmp['name']  = table.rows[i].cells[0].children[0].value;
-	tmp['value'] = table.rows[i].cells[1].children[0].value;
-	if (tmp['name']&&!table.rows[i].cells[2].children[0].checked) {
-	    returnTable.push(tmp);
+	if (tmp['name']==='Cookie') {
+	    tmp['value'] = mergeCookies(table.rows, i);
+	} else {
+	    tmp['value'] = table.rows[i].cells[1].children[0].value;
+	}
+	if (tmp['name']==='Cookie') {
+	    if (tmp['name']) {
+		returnTable.push(tmp);
+	    }
+	} else {
+	    if (tmp['name']&&!table.rows[i].cells[2].children[0].checked) {
+		returnTable.push(tmp);
+	    }
 	}
 	
     }
