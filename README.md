@@ -16,7 +16,7 @@ Simple request header interceptor.
 7. Click [send]. If you want to send all requests, click [Send ALL]. 
 
 # Todo
-1. Parse Cookie.
-2. Modify request URL and body.
-3. Modify response body and header.
-4. Improve design.
+- [x] Parse Cookie. 
+- [ ] Modify request URL and body.
+- [ ] Modify response body and header.
+- [ ] Improve design.
